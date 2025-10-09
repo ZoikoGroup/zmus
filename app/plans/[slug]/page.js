@@ -2,112 +2,101 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import {
-  Button,
-  Col,
-  Container,
-  Row,
-  Card,
-  CardBody,
-  Image,
-  Spinner,
-} from "react-bootstrap";
-
+import { Button, Col, Container, Row, Card, CardBody, Image, Spinner } from "react-bootstrap";
 import TopHeader from "../../components/TopHeader";
 import Header from "../../components/Header";
 import HeadBar from "../../components/HeadBar";
 import Footer from "../../components/Footer";
 import Testimonials from "../../components/Testimonials";
+import { useCart } from "../../context/CartContext";
+import { useRouter } from "next/navigation";
 
 export default function PlanDetailsPage() {
-  const { slug } = useParams();
-  const [plan, setPlan] = useState(null);
-  const [loading, setLoading] = useState(true);
+    const { slug } = useParams();
+    const [plan, setPlan] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const { addToCart } = useCart();
+    const router = useRouter();
 
-  useEffect(() => {
-    if (!slug) return;
+    const handleBuyNow = (item) => {
+        addToCart(item);
+        router.push("/checkout");
+    };
 
-    fetch(`https://zmapi.zoikomobile.co.uk/api/v1/plan/slug/${slug}`)
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.success) {
-          setPlan(res.data);
-        } else {
-          setPlan(null);
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, [slug]);
+    useEffect(() => {
+        if (!slug) return;
 
-  if (loading) {
-    return (
-      <>
-        <TopHeader />
-        <Header />
-        <Container className="text-center mt-5">
-          <Spinner animation="border" /> Loading plan...
-        </Container>
-      </>
-    );
-  }
+        fetch(`https://zmapi.zoikomobile.co.uk/api/v1/plan/slug/${slug}`)
+            .then((res) => res.json())
+            .then((res) => {
+                if (res.success) {
+                setPlan(res.data);
+                } else {
+                setPlan(null);
+                }
+                setLoading(false);
+            })
+            .catch((err) => {
+                console.error(err);
+                setLoading(false);
+            });
+    }, [slug]);
 
-  if (!plan) {
-    return (
-      <>
+    if (loading) {
+        return (
+            <>
+            <TopHeader />
+            <Header />
+            <Container className="text-center mt-5">
+            <Spinner animation="border" /> Loading plan...
+            </Container>
+            </>
+        );
+    }
+
+    if (!plan) {
+        return (
+        <>
         <TopHeader />
         <Header />
         <HeadBar text={<>Plan Details</>} />
         <Container className="text-center mt-5">
-          <h2>Plan not found</h2>
+        <h2>Plan not found</h2>
         </Container>
         <Footer />
-      </>
-    );
-  }
+        </>
+        );
+    }
 
-  return (
+    return (
     <>
-      <TopHeader />
-      <Header />
-      <HeadBar text={<>Zoiko Prepaid Plan</>} />
+    <TopHeader />
+    <Header />
+    <HeadBar text={<>Zoiko Prepaid Plan</>} />
 
-      {/* Plan Details */}
-      <Container fluid className="bglite">
-  <Container className="py-5 w-75">
-    <h2>{plan.title}</h2>
+    {/* Plan Details */}
+    <Container fluid className="bglite">
+        <Container className="py-5 w-75">
+            <h2>{plan.title}</h2>
 
-    {/* Plan Features */}
-    {plan.features &&
-      plan.features.map((f, i) => (
-        <div
-          key={i}
-          className="planbox d-flex flex-row p-2 gap-2 align-items-center"
-        >
-          {/* Icon image */}
-          {f.icon_url && (
-            <img
-              src={`https://zmapi.zoikomobile.co.uk/storage/${f.icon_url}`}
-              alt={f.text}
-              style={{ width: "24px", height: "24px" }}
-            />
-          )}
+            {/* Plan Features */}
+            {plan.features && plan.features.map((f, i) => (
+                <div key={i} className="planbox d-flex flex-row p-2 gap-2 align-items-center">
+                    {/* Icon image */}
+                    {f.icon_url && (
+                        <Image src={`https://zmapi.zoikomobile.co.uk/storage/${f.icon_url}`} alt={f.text} fluid />
+                    )}
 
-          <span className="p-0">{f.text}</span>
-        </div>
-      ))}
+                    <span className="p-0">{f.text}</span>
+                </div>
+            ))}
 
-    {/* Continue Button */}
-    <div className="text-center pt-4">
-      <Button variant="danger" size="lg">
-        Continue To Checkout
-      </Button>
-    </div>
-  </Container>
-</Container>
+            {/* Continue Button */}
+            <div className="text-center pt-4">
+                <Button variant="danger" size="lg" onClick={() => handleBuyNow(plan)}>Continue To Checkout</Button>
+            </div>
+        </Container>
+    </Container>
 
 
 
@@ -194,8 +183,8 @@ export default function PlanDetailsPage() {
             </Row>
         </Container>
 
-      <Testimonials />
-      <Footer />
+    <Testimonials />
+    <Footer />
     </>
   );
 }
