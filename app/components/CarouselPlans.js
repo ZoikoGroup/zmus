@@ -4,10 +4,19 @@ import { Button, Image } from 'react-bootstrap';
 import { Container, Row, Col } from "react-bootstrap";
 import Link from "next/link";
 import { useState, useEffect } from 'react';
+import { useCart } from "../context/CartContext";
+import { useRouter } from "next/navigation";
 
 export default function CarouselSimPlan () {
 
+    const { addToCart } = useCart();
     const [plans, setPlans] = useState(null);
+    const router = useRouter();
+
+    const handleBuyNow = (item) => {
+        addToCart(item);
+        router.push("/checkout");
+    };
 
     useEffect(() => {
         async function fetchPlans() {
@@ -67,7 +76,7 @@ export default function CarouselSimPlan () {
                                         ))}
                                     </ul>
                                     <hr className="separator" />
-                                    <div className="text-center"><Link href={`/plans/${item.slug}`} className="btn btn-outline-danger px-4">View plan</Link> <Link href="#" className="btn btn-danger">Buy this plan</Link></div>
+                                    <div className="text-center"><Link href={`/plans/${item.slug}`} className="btn btn-outline-danger px-4">View plan</Link> <Button variant='danger' onClick={() => handleBuyNow(item)}>Buy this plan</Button></div>
                                 </div>
                             </div>
                         </Col>
@@ -102,7 +111,7 @@ export default function CarouselSimPlan () {
                                         ))}
                                     </ul>
                                     <hr className="separator" />
-                                    <div className="text-center"><Link href={`/plans/${item.slug}`} className="btn btn-outline-danger px-4">View plan</Link> <Link href="#" className="btn btn-danger">Buy this plan</Link></div>
+                                    <div className="text-center"><Link href={`/plans/${item.slug}`} className="btn btn-outline-danger px-4">View plan</Link> <Button variant='danger' onClick={() => handleBuyNow(item)}>Buy this plan</Button></div>
                                 </div>
                             </div>
                         </Col>
@@ -137,7 +146,7 @@ export default function CarouselSimPlan () {
                                         ))}
                                     </ul>
                                     <hr className="separator" />
-                                    <div className="text-center"><Link href={`/plans/${item.slug}`} className="btn btn-outline-danger px-4">View plan</Link> <Link href="#" className="btn btn-danger">Buy this plan</Link></div>
+                                    <div className="text-center"><Link href={`/plans/${item.slug}`} className="btn btn-outline-danger px-4">View plan</Link> <Button variant='danger' onClick={() => handleBuyNow(item)}>Buy this plan</Button></div>
                                 </div>
                             </div>
                         </Col>
@@ -172,7 +181,7 @@ export default function CarouselSimPlan () {
                                         ))}
                                     </ul>
                                     <hr className="separator" />
-                                    <div className="text-center"><Link href={`/plans/${item.slug}`} className="btn btn-outline-danger px-4">View plan</Link> <Link href="#" className="btn btn-danger">Buy this plan</Link></div>
+                                    <div className="text-center"><Link href={`/plans/${item.slug}`} className="btn btn-outline-danger px-4">View plan</Link> <Button variant='danger' onClick={() => handleBuyNow(item)}>Buy this plan</Button></div>
                                 </div>
                             </div>
                         </Col>
