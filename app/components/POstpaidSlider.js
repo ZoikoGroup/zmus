@@ -76,7 +76,7 @@ const PrepaidSlider = () => {
                                 <hr className="separator" />
                                 <Row>
                                     <Col className="data">{item.sub_title}</Col>
-                                    <Col style={{textAlign:'right'}}><span className="curprice">{item.price}</span><br />{item.rate}</Col>
+                                    <Col style={{textAlign:'right'}}><span className="curprice">${item.price}</span><br />{item.rate}</Col>
                                 </Row>
                                 <hr className="separator" />
                                 <ul className='check-bullet'>
