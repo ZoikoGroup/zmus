@@ -1,12 +1,20 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Card, CardBody, Container, Button, Image, Row, Col } from "react-bootstrap";
+import { useCart } from "../context/CartContext";
+import { useRouter } from "next/navigation";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 const PrepaidSlider = () => {
     const [plans, setPlans] = useState([]);
+    const { addToCart } = useCart();
+    const router = useRouter();
+    const handleBuyNow = (item) => {
+        addToCart(item);
+        router.push("/checkout");
+    };
 
     useEffect(() => {
         const fetchPlans = async () => {
@@ -80,11 +88,11 @@ const PrepaidSlider = () => {
                                 <hr className="separator" />
 
                                 {/* BUTTONS */}
-                                <Button variant="danger" href={`/product/${item.slug}`} size="sm">
+                                <Button variant="danger" onClick={() => handleBuyNow(item)} size="sm">
                                     Buy This Plan
                                 </Button>
                                 &nbsp;
-                                <Button variant="outline-danger" href={`/product/${item.slug}`} size="sm">
+                                <Button variant="outline-danger" href={`/plans/${item.slug}`} size="sm">
                                     View Details
                                 </Button>
                             </CardBody>
