@@ -1,12 +1,33 @@
 "use client"
-import React from "react";
 import { Card, CardBody, Container, Button, Image, Row, Col } from "react-bootstrap";
-import data from '../products/travelplans.json';
+import React, { useState, useEffect } from 'react';
+import { useCart } from "../context/CartContext";
+import { useRouter } from "next/navigation";
 import Slider from "react-slick";
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
 const TravelPlanSlider = () => {
+
+    const { addToCart } = useCart();
+    const [plans, setPlans] = useState(null);
+    const router = useRouter();
+
+    const handleBuyNow = (item) => {
+        addToCart(item);
+        router.push("/checkout");
+    };
+
+    useEffect(() => {
+        async function fetchPlans() {
+            let res = await fetch('https://zmapi.zoikomobile.co.uk/api/v1/plans')
+            let data = await res.json()
+            setPlans(data.data)
+        }
+        fetchPlans()
+    }, [])
+    if (!plans) return <div>Loading...</div>
+
     const settings = {
         dots: true,
         arrows: false,
@@ -47,27 +68,27 @@ const TravelPlanSlider = () => {
             <h2 className="text-center">Stay Connected Globally - Simple, Affordable Travel Plans</h2>
             <div className="slider-container">
                 <Slider {...settings}>
-                    {data.map((item) => (
-                        <Card key={item.id}>
-                            <CardBody>
-                                <Image src={`${item.image}`} fluid alt={`${item.name}`} />
-                                <h4 className="pt-2 txtred">{item.name}</h4>
-                                <hr className="separator" />
-                                <Row>
-                                    <Col className="data">{item.data}</Col>
-                                    <Col style={{textAlign:'right'}}><span className="curprice">{item.price}</span><br />{item.rate}</Col>
-                                </Row>
-                                <hr className="separator" />
-                                <ul className='check-bullet'>
-                                    {item.features.map((index) => (
-                                        <li key={index}>{index}</li>
-                                    ))}
-                                </ul>
-                                <hr className="separator" />
-                                <Button variant="danger" href={`/products/${item.slug}`}>Buy This Plan</Button>&nbsp;
-                                <Button variant="outline-danger" href={`/products/${item.slug}`}>View Details</Button>
-                            </CardBody>
-                        </Card>
+                    {plans.filter(plan => plan.plan_type === 'travel-plans').slice(0,3).map(item => (
+                    <Card key={item.id}>
+                        <CardBody>
+                            <Image src={`https://zmapi.zoikomobile.co.uk/storage/${item.featured_image}`} fluid alt="Zoiko Lite" />
+                            <h4 className="pt-2 txtred">{item.title}</h4>
+                            <hr className="separator" />
+                            <Row>
+                                <Col className="data">{item.sub_title}</Col>
+                                <Col style={{textAlign:'right'}}><span className="curprice">${item.price}</span><br />{item.rate}</Col>
+                            </Row>
+                            <hr className="separator" />
+                            <ul className='check-bullet'>
+                                {item.features.slice(0,6).map((ftrs, index) => (
+                                <li key={index}>{ftrs.text}</li>
+                                ))}
+                            </ul>
+                            <hr className="separator" />
+                            <Button variant="danger" onClick={() => handleBuyNow(item)}>Buy This Plan</Button>&nbsp;
+                            <Button variant="outline-danger" href={`/plans/${item.slug}`}>View Details</Button>
+                        </CardBody>
+                    </Card>
                     ))}
                 </Slider>
             </div>
