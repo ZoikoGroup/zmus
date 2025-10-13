@@ -400,6 +400,13 @@ a {
   padding: 18px 18px;
   background-color: white;
 }
+.greyborderbox {
+  width: 100%;
+  border: 1px solid #c9c9c9;
+  margin-bottom: 12px;
+  padding: 18px 18px;
+  background-color: white;
+}
 .redbordercontainer {
   border: 1px solid #DF1E5A;
   border-radius: 8px;
