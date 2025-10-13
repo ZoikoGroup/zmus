@@ -52,7 +52,7 @@ export default function CheckoutPage() {
         } else {
             // Cash on Delivery
             clearCart();
-            router.push("/order-success?method=cod");
+            router.push("/order-success?method=stripe");
         }
 
         setLoading(false);
@@ -112,6 +112,19 @@ export default function CheckoutPage() {
                                 <hr />
                                 <small>Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our privacy policy.</small>
                                 <Form.Check label="By submitting this form, you agree to Zoiko College Student Discount Program&apos;s terms and conditions ." name="terms" onChange={handleChange} value={formData.terms} type="checkbox" className="small mt-4" />
+                                <div className="mt-4">
+                                    <h5 className="font-semibold mb-2">Select Payment</h5>
+                                    <div className="flex space-x-4">
+                                        <label className="me-5">
+                                        <input type="radio" name="payment" value="cod" checked={paymentMethod === "cod"}  onChange={() => setPaymentMethod("cod")} />{" "}
+                                        Cash on Delivery
+                                        </label>
+                                        <label>
+                                        <input type="radio" name="payment" value="stripe" checked={paymentMethod === "stripe"} onChange={() => setPaymentMethod("stripe")} />{" "}
+                                        Pay with Stripe
+                                        </label>
+                                    </div>
+                                </div>
                                 <Button disabled={loading} variant="danger" onClick={handleCheckout} size="lg" className="my-4">
                                     {loading ? "Processing..." : "Place Order"}
                                 </Button>
