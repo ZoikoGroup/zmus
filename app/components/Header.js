@@ -4,15 +4,15 @@ import Image from "next/image";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../globals.css';
 import { useState } from "react";
+import { useCart } from "../context/CartContext";
 import { usePathname} from 'next/navigation';
 
 const Header = () => {
-
     const [show, setShow] = useState(false);
     const pathname = usePathname();
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
-    
+    const { cartItems } = useCart();
     return (
         <>
         <Navbar expand="lg" className="bg-body-tertiary p-0 headnav">
@@ -35,7 +35,22 @@ const Header = () => {
                     </Nav>
                     <Nav className="ms-auto">
                         <Nav.Link href="#" onClick={handleShow}><i className="bi bi-search"></i></Nav.Link>
-                        <Nav.Link href="cart"><i className="bi bi-cart"></i></Nav.Link>
+                        <Nav.Link href="cart" style={{ position: "relative" }}>
+                            <i className="bi bi-cart"></i>
+                            {cartItems.length > 0 && (
+                                <span style={{
+                                    position: "absolute",
+                                    top: 0,
+                                    right: 0,
+                                    background: "#dc3545",
+                                    color: "#fff",
+                                    borderRadius: "50%",
+                                    padding: "2px 6px",
+                                    fontSize: "12px",
+                                    fontWeight: "bold"
+                                }}>{cartItems.length}</span>
+                            )}
+                        </Nav.Link>
                         <NavDropdown title="Login" id="collapsible-nav-dropdown">
                             <NavDropdown.Item href="/login">Login</NavDropdown.Item>
                             <NavDropdown.Item href="/register">Register</NavDropdown.Item>

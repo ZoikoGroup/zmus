@@ -7,16 +7,32 @@ import { useRouter } from "next/navigation";
 import Slider from "react-slick";
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+import SimTypeModal from "./SimTypeModal";
 
 const PrepaidSlider = () => {
 
     const { addToCart } = useCart();
     const [plans, setPlans] = useState([]);
     const router = useRouter();
+    const [showSimModal, setShowSimModal] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState(null);
 
     const handleBuyNow = (item) => {
-        addToCart(item);
-        router.push("/checkout");
+        setSelectedPlan(item);
+        setShowSimModal(true);
+    };
+    const handleSimTypeSelect = (data) => {
+        if (selectedPlan) {
+            addToCart({
+                ...selectedPlan,
+                simType: data.simType,
+                lineType: data.lineType,
+                portNumber: data.portNumber || ""
+            });
+            setShowSimModal(false);
+            setSelectedPlan(null);
+            router.push("/checkout");
+        }
     };
 
     useEffect(() => {
@@ -92,6 +108,7 @@ const PrepaidSlider = () => {
                     ))}
                 </Slider>
             </div>
+            <SimTypeModal show={showSimModal} onHide={() => setShowSimModal(false)} onSelect={handleSimTypeSelect} />
         </Container>
     );
 }

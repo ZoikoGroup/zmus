@@ -8,10 +8,25 @@ import TopHeader from "../components/TopHeader";
 import Header from "../components/Header";
 import HeadBar from "../components/HeadBar";
 import CheckoutForm from "../components/CheckoutForm";
+import React, { useRef } from "react";
 
 export default function CheckoutPage() {
-    const { cartItems, totalPrice, clearCart, removeFromCart } = useCart();
-    const [paymentMethod, setPaymentMethod] = useState("cod");
+    const { cartItems, totalPrice, clearCart, removeFromCart, increaseQuantity, decreaseQuantity } = useCart();
+    const [paymentMethod, setPaymentMethod] = useState("stripe");
+    const [cardData, setCardData] = useState({
+        cardNumber: "",
+        cardName: "",
+        cardExpiry: "",
+        cardCvc: ""
+    });
+    const [cardErrors, setCardErrors] = useState({});
+    const handleCardChange = (e) => {
+        const { name, value } = e.target;
+        setCardData({
+            ...cardData,
+            [name]: value,
+        });
+    };
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
@@ -24,6 +39,7 @@ export default function CheckoutPage() {
         concent: false,
         terms: false
     });
+    const checkoutFormRef = useRef();
 
     const handleChange = (e) => {
         setSelectedValue(e.target.value);
@@ -37,22 +53,48 @@ export default function CheckoutPage() {
     const handleCheckout = async () => {
         if (cartItems.length === 0) return alert("Cart is empty!");
 
+        // Validate user data from CheckoutForm
+        if (checkoutFormRef.current && !checkoutFormRef.current.validate()) {
+            alert("Please fill all required user details correctly.");
+            return;
+        }
+        // Validate terms agreement
+        if (!formData.terms) {
+            setErrors({ terms: "You must agree to the terms and conditions." });
+            return;
+        }
+        // Validate credit card if selected
+        if (paymentMethod === "card") {
+            const newCardErrors = {};
+            if (!cardData.cardNumber) newCardErrors.cardNumber = "Card number is required.";
+            if (!cardData.cardName) newCardErrors.cardName = "Name on card is required.";
+            if (!cardData.cardExpiry) newCardErrors.cardExpiry = "Expiry date is required.";
+            if (!cardData.cardCvc) newCardErrors.cardCvc = "CVC is required.";
+            setCardErrors(newCardErrors);
+            if (Object.keys(newCardErrors).length > 0) return;
+        }
+        setErrors({});
         setLoading(true);
+
+        // Get user data from form
+        const userData = checkoutFormRef.current ? checkoutFormRef.current.getFormData() : {};
 
         if (paymentMethod === "stripe") {
             // Stripe Checkout
             const res = await fetch("/api/checkout", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ items: cartItems }),
+                body: JSON.stringify({ items: cartItems, user: userData }),
             });
 
             const { url } = await res.json();
             window.location.href = url;
-        } else {
-            // Cash on Delivery
+        } else if (paymentMethod === "card") {
+            // Credit Card
+            // Here you would handle card payment logic
+            alert("Credit card payment submitted!");
             clearCart();
-            router.push("/order-success?method=stripe");
+            router.push("/order-success?method=card");
         }
 
         setLoading(false);
@@ -64,7 +106,7 @@ export default function CheckoutPage() {
         <Header />
         <HeadBar text={<>Zoiko Mobile Checkout: Now Review & Complete Your Purchase</>} />
         <Container fluid className="bglite">
-            <Container className="py-4 my-4">
+            <Container className="py-4">
                 <div className="p-10 max-w-3xl mx-auto">
                     <h2 className="text-3xl font-semibold mb-6">Checkout</h2>
                     <p className="txtred">Connecting Every Possibility with Zoiko Mobile!</p>
@@ -78,30 +120,44 @@ export default function CheckoutPage() {
                                     <div className="d-flex align-items-end">Action</div>
                                 </div>
                             {cartItems.map((item) => (
-                            <div key={item.id} className="d-flex justify-content-between greyborderbox">
-                                <div className="w-25">{item.title}</div>
-                                <div className="w-25">{item.quantity}</div>
+                            <div key={item.id} className="d-flex justify-content-between align-items-center greyborderbox">
+                                <div className="w-25">
+                                    {item.title}
+                                    {item.simType && (
+                                        <div className="small text-muted">SIM: {item.simType.toUpperCase()}</div>
+                                    )}
+                                </div>
+                                <div className="w-25 d-flex align-items-center">
+                                    <Button variant="outline" size="sm" onClick={() => decreaseQuantity(item.id)} className="me-2">-</Button>
+                                    <span>{item.quantity}</span>
+                                    <Button variant="outline" size="sm" onClick={() => increaseQuantity(item.id)} className="ms-2">+</Button>
+                                </div>
                                 <div className="w-25">${item.price * item.quantity}</div>
                                 <Button variant="outline" size="sm" onClick={() => removeFromCart(item.id)} className="ms-5"><i className="bi bi-x-square"></i></Button>
                             </div>
                             ))}
                             <hr />
-                            <CheckoutForm />
+                            <CheckoutForm ref={checkoutFormRef} />
                         </Col>
                         <Col md="4" sm="12" xs="12">
                             <div className="redborderbox">
                                 <h4 className="txtgreen">Your order</h4>
                                 <div className="d-flex justify-content-between">
-                                    <div className="d-flex align-items-start">Item</div>
-                                    <div className="d-flex align-items-center">Quantity</div>
-                                    <div className="d-flex align-items-end">Price</div>
+                                    <div className="w-40 fw-bold">Item</div>
+                                    <div className="w-30 fw-bold text-center">Quantity</div>
+                                    <div className="w-30 fw-bold text-end">Price</div>
                                 </div>
                                 <hr />
                                 {cartItems.map((item) => (
-                                <div key={item.id} className="d-flex justify-content-between">
-                                    <div>{item.title}</div>
-                                    <div>{item.quantity}</div>
-                                    <div>${item.price * item.quantity}</div>
+                                <div key={item.id} className="d-flex justify-content-between align-items-center">
+                                    <div className="w-40">
+                                        {item.title}
+                                        {item.simType && (
+                                            <div className="small text-muted">SIM: {item.simType.toUpperCase()}</div>
+                                        )}
+                                    </div>
+                                    <div className="w-30 text-center">{item.quantity}</div>
+                                    <div className="w-30 text-end">${item.price * item.quantity}</div>
                                 </div>
                                 ))}
                                 <hr />
@@ -110,21 +166,47 @@ export default function CheckoutPage() {
                                     <div>${totalPrice.toFixed(2)}</div>
                                 </div>
                                 <hr />
-                                <small>Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our privacy policy.</small>
-                                <Form.Check label="By submitting this form, you agree to Zoiko College Student Discount Program&apos;s terms and conditions ." name="terms" onChange={handleChange} value={formData.terms} type="checkbox" className="small mt-4" />
                                 <div className="mt-4">
                                     <h5 className="font-semibold mb-2">Select Payment</h5>
-                                    <div className="flex space-x-4">
-                                        <label className="me-5">
-                                        <input type="radio" name="payment" value="cod" checked={paymentMethod === "cod"}  onChange={() => setPaymentMethod("cod")} />{" "}
-                                        Cash on Delivery
+                                    <div className="flex space-x-4 mb-3">
+                                        <label className="me-4">
+                                            <input type="radio" name="payment" value="stripe" checked={paymentMethod === "stripe"} onChange={() => setPaymentMethod("stripe")} />{" "}
+                                            Pay with Stripe
                                         </label>
                                         <label>
-                                        <input type="radio" name="payment" value="stripe" checked={paymentMethod === "stripe"} onChange={() => setPaymentMethod("stripe")} />{" "}
-                                        Pay with Stripe
+                                            <input type="radio" name="payment" value="card" checked={paymentMethod === "card"} onChange={() => setPaymentMethod("card")} />{" "}
+                                            Credit Card
                                         </label>
                                     </div>
+                                    {paymentMethod === "card" && (
+                                        <div className="mb-3 p-3 border rounded bg-light">
+                                            <Form.Group className="mb-2">
+                                                <Form.Label>Card Number <span className="txtred">*</span></Form.Label>
+                                                <Form.Control type="text" name="cardNumber" placeholder="Card number" value={cardData.cardNumber} onChange={handleCardChange} isInvalid={!!cardErrors.cardNumber} />
+                                                {cardErrors.cardNumber && <div className="text-danger small">{cardErrors.cardNumber}</div>}
+                                            </Form.Group>
+                                            <Form.Group className="mb-2">
+                                                <Form.Label>Name on Card <span className="txtred">*</span></Form.Label>
+                                                <Form.Control type="text" name="cardName" placeholder="Name on card" value={cardData.cardName} onChange={handleCardChange} isInvalid={!!cardErrors.cardName} />
+                                                {cardErrors.cardName && <div className="text-danger small">{cardErrors.cardName}</div>}
+                                            </Form.Group>
+                                            <Form.Group className="mb-2">
+                                                <Form.Label>Expiry Date <span className="txtred">*</span></Form.Label>
+                                                <Form.Control type="text" name="cardExpiry" placeholder="MM/YY" value={cardData.cardExpiry} onChange={handleCardChange} isInvalid={!!cardErrors.cardExpiry} />
+                                                {cardErrors.cardExpiry && <div className="text-danger small">{cardErrors.cardExpiry}</div>}
+                                            </Form.Group>
+                                            <Form.Group className="mb-2">
+                                                <Form.Label>CVC <span className="txtred">*</span></Form.Label>
+                                                <Form.Control type="text" name="cardCvc" placeholder="CVC" value={cardData.cardCvc} onChange={handleCardChange} isInvalid={!!cardErrors.cardCvc} />
+                                                {cardErrors.cardCvc && <div className="text-danger small">{cardErrors.cardCvc}</div>}
+                                            </Form.Group>
+                                        </div>
+                                    )}
                                 </div>
+                                <hr />
+                                <small>Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our privacy policy.</small>
+                                <Form.Check label="By submitting this form, you agree to Zoiko College Student Discount Program&apos;s terms and conditions ." name="terms" onChange={handleChange} checked={formData.terms} type="checkbox" className="small mt-4" />
+                                {errors.terms && <div className="text-danger small mt-2">{errors.terms}</div>}
                                 <Button disabled={loading} variant="danger" onClick={handleCheckout} size="lg" className="my-4">
                                     {loading ? "Processing..." : "Place Order"}
                                 </Button>
