@@ -1,6 +1,6 @@
 "use client";
 import { useCart } from "../context/CartContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Col, Container, Row, Form } from "react-bootstrap";
 import Footer from "../components/Footer";
@@ -49,6 +49,34 @@ export default function CheckoutPage() {
             [name]: type === "checkbox" ? checked : value,
         })
     }
+
+    const [coupon, setCoupon] = useState("");
+    const [couponApplied, setCouponApplied] = useState(false);
+    const [discount, setDiscount] = useState(0);
+    const [couponError, setCouponError] = useState("");
+
+    // Example coupon logic
+    const validCoupons = {
+        "ZOIKO10": 0.10, // 10% off
+        "SAVE5": 0.05    // 5% off
+    };
+
+    const handleApplyCoupon = () => {
+        const code = coupon.trim().toUpperCase();
+        if (validCoupons[code]) {
+            setDiscount(validCoupons[code]);
+            setCouponApplied(true);
+            setCouponError("");
+        } else {
+            setCouponError("Invalid coupon code.");
+            setCouponApplied(false);
+            setDiscount(0);
+        }
+    };
+
+    useEffect(() => {
+        if (!couponApplied) setDiscount(0);
+    }, [couponApplied]);
 
     const handleCheckout = async () => {
         if (cartItems.length === 0) return alert("Cart is empty!");
@@ -136,6 +164,30 @@ export default function CheckoutPage() {
                                 <Button variant="outline" size="sm" onClick={() => removeFromCart(item.id)} className="ms-5"><i className="bi bi-x-square"></i></Button>
                             </div>
                             ))}
+                            {/* Coupon Section */}
+                            <div className="my-5">
+                                <Form.Label>Coupon Code</Form.Label>
+                                <div className="d-flex">
+                                    <Form.Control
+                                        type="text"
+                                        value={coupon}
+                                        onChange={e => setCoupon(e.target.value)}
+                                        placeholder="Enter coupon code"
+                                        disabled={couponApplied}
+                                    />
+                                    <Button
+                                        variant="primary"
+                                        className="ms-2"
+                                        onClick={handleApplyCoupon}
+                                        disabled={couponApplied || !coupon}
+                                    >
+                                        {couponApplied ? "Applied" : "Apply"}
+                                    </Button>
+                                </div>
+                                {couponError && <div className="text-danger small mt-2">{couponError}</div>}
+                                {couponApplied && <div className="text-success small mt-2">Coupon applied! Discount: {Math.round(discount * 100)}%</div>}
+                            </div>
+                            {/* End Coupon Section */}
                             <hr />
                             <CheckoutForm ref={checkoutFormRef} />
                         </Col>
@@ -163,7 +215,12 @@ export default function CheckoutPage() {
                                 <hr />
                                 <div className="d-flex justify-content-between">
                                     <div>Total</div>
-                                    <div>${totalPrice.toFixed(2)}</div>
+                                    <div>
+                                        ${discount > 0 ? (totalPrice * (1 - discount)).toFixed(2) : totalPrice.toFixed(2)}
+                                        {discount > 0 && (
+                                            <span className="text-success ms-2">(Discount applied)</span>
+                                        )}
+                                    </div>
                                 </div>
                                 <hr />
                                 <div className="mt-4">
