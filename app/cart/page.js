@@ -6,9 +6,11 @@ import HeadBar from "../components/HeadBar";
 import Footer from "../components/Footer";
 import Testimonials from "../components/Testimonials";
 import { Button, Container } from "react-bootstrap";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const { cartItems, removeFromCart, totalPrice, clearCart } = useCart();
+  const router = useRouter();
 
   return (
     <>
@@ -24,22 +26,48 @@ export default function CartPage() {
                 <p>Your cart is empty 🛍️</p>
             ) : (
                 <>
-                <ul className="space-y-3">
-                    {cartItems.map((item) => (
-                    <li key={item.id} className="flex justify-between border p-4 rounded-lg">
-                        <div>
-                            <p className="font-semibold">{item.name}</p>
-                            <p>Quantity: {item.quantity}</p>
-                            <p>Price: ${item.price * item.quantity}</p>
-                        </div>
-                        <Button variant="danger" onClick={() => removeFromCart(item.id)}>Remove</Button>
-                    </li>
-                    ))}
-                </ul>
-
+                <div className="table-responsive">
+                    <table className="table table-bordered align-middle">
+                        <thead className="table-light">
+                            <tr>
+                                <th>Item</th>
+                                <th>SIM Type</th>
+                                <th>Line Type</th>
+                                <th>Port Number</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {cartItems.map((item) => (
+                                <tr key={item.id}>
+                                    <td>
+                                        <span className="fw-bold">{item.title || item.name}</span>
+                                    </td>
+                                    <td>{item.simType ? item.simType.toUpperCase() : '-'}</td>
+                                    <td>{item.lineType ? (item.lineType === 'new' ? 'New Line' : 'Port Number') : '-'}</td>
+                                    <td>{item.portNumber ? item.portNumber : '-'}</td>
+                                    <td>{item.quantity}</td>
+                                    <td>${item.price * item.quantity}</td>
+                                    <td>
+                                        <Button variant="danger" size="sm" onClick={() => removeFromCart(item.id)}>Remove</Button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
                 <div className="mt-6 border-t pt-4">
                     <p className="text-xl font-semibold">Total: ${totalPrice.toFixed(2)}</p>
-                    <Button onClick={clearCart} variant="danger">Clear Cart</Button>
+                    <Button onClick={clearCart} variant="danger" className="me-3">Clear Cart</Button>
+                    <Button
+                        variant="success"
+                        disabled={cartItems.length === 0}
+                        onClick={() => router.push("/checkout")}
+                    >
+                        Proceed To Checkout
+                    </Button>
                 </div>
                 </>
             )}
