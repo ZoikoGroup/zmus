@@ -3,16 +3,32 @@ import { Container, Card, CardBody, Row, Col, Button, Image } from "react-bootst
 import React, { useState, useEffect } from 'react';
 import { useCart } from "../context/CartContext";
 import { useRouter } from "next/navigation";
+import SimTypeModal from "./SimTypeModal";
 
 const BusinessPlans = () => {
 
     const { addToCart } = useCart();
     const [plans, setPlans] = useState(null);
     const router = useRouter();
+    const [showSimModal, setShowSimModal] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState(null);
 
     const handleBuyNow = (item) => {
-        addToCart(item);
-        router.push("/checkout");
+        setSelectedPlan(item);
+        setShowSimModal(true);
+    };
+    const handleSimTypeSelect = (data) => {
+        if (selectedPlan) {
+            addToCart({
+                ...selectedPlan,
+                simType: data.simType,
+                lineType: data.lineType,
+                portNumber: data.portNumber || ""
+            });
+            setShowSimModal(false);
+            setSelectedPlan(null);
+            router.push("/checkout");
+        }
     };
 
     useEffect(() => {
@@ -31,7 +47,7 @@ const BusinessPlans = () => {
             <h2 className="text-center pt-3">Zoiko Mobile Postpaid Business Deals</h2>
             <Row>
                 {plans.filter(plan => plan.plan_type === 'business-plans').slice(0,3).map(item => (
-                <Col md={4} sm={12} xs={12}>
+                <Col key={item.id} md={4} sm={12} xs={12}>
                     <Card>
                         <CardBody>
                             <Image src={`https://zmapi.zoikomobile.co.uk/storage/${item.featured_image}`} fluid alt="Zoiko Lite" />
@@ -56,6 +72,7 @@ const BusinessPlans = () => {
                 ))}
             </Row>
         </Container>
+        <SimTypeModal show={showSimModal} onHide={() => setShowSimModal(false)} onSelect={handleSimTypeSelect} />
         <Container fluid className="redimgbg p-0">
             <Container className="p-5">
                 <h4>Climb your business&apos;s bottom line.</h4>
