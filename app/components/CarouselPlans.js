@@ -85,7 +85,7 @@ export default function CarouselSimPlan () {
                                     </ul>
                                     <hr className="separator" />
                                     <div className="text-center"><Link href={`/plans/${item.slug}`} className="btn btn-outline-danger px-4">View plan</Link> <Button variant='danger' onClick={() => handleBuyNow(item)}>Buy this plan</Button></div>
-    <SimTypeModal show={showSimModal} onHide={() => setShowSimModal(false)} onSelect={handleSimSelect} />
+                                    <SimTypeModal show={showSimModal} onHide={() => setShowSimModal(false)} onSelect={handleSimSelect} />
                                 </div>
                             </div>
                         </Col>

@@ -128,6 +128,16 @@ export default function CheckoutPage() {
         setLoading(false);
     };
 
+    // Calculate shipping fee if any item is pSIM
+    const hasPSIM = cartItems.some(item => item.simType && item.simType.toLowerCase() === 'psim');
+    const shippingFee = hasPSIM ? 5 : 0;
+
+    // Calculate tax @10% on subtotal after discount
+    const subtotal = discount > 0 ? totalPrice * (1 - discount) : totalPrice;
+    const taxRate = 0.10;
+    const taxAmount = subtotal * taxRate;
+    const grandTotal = subtotal + taxAmount + shippingFee;
+
     return (
         <>
         <TopHeader />
@@ -214,15 +224,28 @@ export default function CheckoutPage() {
                                 ))}
                                 <hr />
                                 <div className="d-flex justify-content-between">
-                                    <div>Total</div>
+                                    <div>Subtotal</div>
                                     <div>
-                                        ${discount > 0 ? (totalPrice * (1 - discount)).toFixed(2) : totalPrice.toFixed(2)}
+                                        ${subtotal.toFixed(2)}
                                         {discount > 0 && (
                                             <span className="text-success ms-2">(Discount applied)</span>
                                         )}
                                     </div>
                                 </div>
-                                <hr />
+                                <div className="d-flex justify-content-between">
+                                    <div>Tax (10%)</div>
+                                    <div>${taxAmount.toFixed(2)}</div>
+                                </div>
+                                {shippingFee > 0 && (
+                                    <div className="d-flex justify-content-between">
+                                        <div>Shipping Fee</div>
+                                        <div>${shippingFee.toFixed(2)}</div>
+                                    </div>
+                                )}
+                                <div className="d-flex justify-content-between fw-bold">
+                                    <div>Total</div>
+                                    <div>${grandTotal.toFixed(2)}</div>
+                                </div>
                                 <div className="mt-4">
                                     <h5 className="font-semibold mb-2">Select Payment</h5>
                                     <div className="flex space-x-4 mb-3">
