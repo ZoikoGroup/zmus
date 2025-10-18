@@ -61,17 +61,40 @@ export default function CheckoutPage() {
         "SAVE5": 0.05    // 5% off
     };
 
-    const handleApplyCoupon = () => {
-        const code = coupon.trim().toUpperCase();
-        if (validCoupons[code]) {
-            setDiscount(validCoupons[code]);
-            setCouponApplied(true);
-            setCouponError("");
-        } else {
-            setCouponError("Invalid coupon code.");
+    const handleApplyCoupon = async () => {
+        const code = coupon.trim();
+        if (!code) return;
+        setCouponError("");
+        setLoading(true);
+        try {
+            // Replace with actual user data if available
+            const user_id = 1;
+            const email = "anowar.euronox@gmail.com";
+            const res = await fetch("https://zmapi.zoikomobile.co.uk/api/v1/apply-coupon", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    user_id,
+                    email,
+                    coupon_code: code
+                })
+            });
+            const data = await res.json();
+            if (data.success && data.discount) {
+                setDiscount(data.discount); // expects discount as decimal, e.g. 0.10 for 10%
+                setCouponApplied(true);
+                setCouponError("");
+            } else {
+                setCouponError(data.message || "Invalid coupon code.");
+                setCouponApplied(false);
+                setDiscount(0);
+            }
+        } catch (err) {
+            setCouponError("Error applying coupon. Please try again.");
             setCouponApplied(false);
             setDiscount(0);
         }
+        setLoading(false);
     };
 
     useEffect(() => {
@@ -133,7 +156,21 @@ export default function CheckoutPage() {
     const shippingFee = hasPSIM ? 5 : 0;
 
     // Calculate tax @10% on subtotal after discount
-    const subtotal = discount > 0 ? totalPrice * (1 - discount) : totalPrice;
+    // If backend returns discount as a fixed value (e.g., $10 off), use that
+    // If discount is a percentage (e.g., 0.10 for 10%), calculate accordingly
+    let couponDeduction = 0;
+    let subtotal = totalPrice;
+    if (discount > 0) {
+        if (discount < 1) {
+            // percentage discount
+            couponDeduction = totalPrice * discount;
+        } else {
+            // fixed value discount
+            couponDeduction = discount;
+        }
+        subtotal = totalPrice - couponDeduction;
+    }
+    if (subtotal < 0) subtotal = 0;
     const taxRate = 0.10;
     const taxAmount = subtotal * taxRate;
     const grandTotal = subtotal + taxAmount + shippingFee;
@@ -225,13 +262,14 @@ export default function CheckoutPage() {
                                 <hr />
                                 <div className="d-flex justify-content-between">
                                     <div>Subtotal</div>
-                                    <div>
-                                        ${subtotal.toFixed(2)}
-                                        {discount > 0 && (
-                                            <span className="text-success ms-2">(Discount applied)</span>
-                                        )}
-                                    </div>
+                                    <div>${totalPrice.toFixed(2)}</div>
                                 </div>
+                                {couponDeduction > 0 && (
+                                    <div className="d-flex justify-content-between">
+                                        <div>Coupon Discount</div>
+                                        <div className="text-success">- ${couponDeduction.toFixed(2)}</div>
+                                    </div>
+                                )}
                                 <div className="d-flex justify-content-between">
                                     <div>Tax (10%)</div>
                                     <div>${taxAmount.toFixed(2)}</div>
