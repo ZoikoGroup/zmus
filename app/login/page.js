@@ -137,6 +137,8 @@ const Login = () => {
                                     />
                                     &nbsp;
                                     <Button variant="outline-danger" href="/register">Register</Button>
+                                    &nbsp;
+                                    <Button variant="danger" href="/api/auth/google">Sign in with Google</Button>
                                 </Form>
                             </Col>
                         </Row>
