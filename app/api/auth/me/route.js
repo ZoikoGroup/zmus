@@ -16,7 +16,7 @@ export async function GET(req) {
       return NextResponse.json({ error: 'missing_token' }, { status: 401 });
     }
 
-    const ZMAPI_BASE = process.env.ZMAPI_BASE || 'https://zmapi.zoikomobile.co.uk';
+    const ZMAPI_BASE = process.env.ZMAPI_BASE || 'https://zmus.vercel.app';
     const url = `${ZMAPI_BASE}/api/user`;
 
     const backendRes = await fetch(url, {
