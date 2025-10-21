@@ -56,7 +56,7 @@ export async function GET(request) {
 
     // Call backend to create/find the user and obtain app token
     try {
-      const backendBase = process.env.ZMAPI_BASE || 'https://zmapi.zoikomobile.co.uk';
+      const backendBase = process.env.ZMAPI_BASE || 'https://zmus.vercel.app';
       const socialRes = await fetch(`${backendBase}/api/v1/social-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
